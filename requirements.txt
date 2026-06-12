@@ -1,3 +1,6 @@
 pyTelegramBotAPI
 google-genai
 playwright
+fastapi
+uvicorn
+
