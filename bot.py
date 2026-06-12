@@ -1,23 +1,43 @@
 import os
 import telebot
-from telebot import apihelper
+from fastapi import FastAPI, Request
 from google import genai
 from playwright.sync_api import sync_playwright
+import uvicorn
 
-# --- PROXY SETTING (Telegram Blocking Se Bachne Ke Liye) ---
-# Hum ek free public proxy use kar rahe hain taaki connection timeout na ho
-apihelper.proxy = {'https': 'http://165.225.220.31:80'} 
-
-# Hugging Face ke Secret se keys uthana
+# Tokens uthana (Hugging Face Secret se)
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 ai_client = genai.Client(api_key=GEMINI_API_KEY)
 
+# Hugging Face ke server ka address automatic nikalna
+SPACE_ID = os.environ.get('SPACE_ID') 
+WEBHOOK_URL = f"https://{SPACE_ID.replace('/', '-').lower()}.hf.space/webhook"
+
+app = FastAPI()
+
+@app.on_event("startup")
+def on_startup():
+    # Telegram ko batana ki hamara bot ab is link par active hai
+    bot.remove_webhook()
+    bot.set_webhook(url=WEBHOOK_URL)
+
+@app.post("/webhook")
+async def handle_webhook(request: Request):
+    json_str = await request.body()
+    update = telebot.types.Update.de_json(json_str.decode('utf-8'))
+    bot.process_new_updates([update])
+    return {"status": "ok"}
+
+@app.get("/")
+def read_root():
+    return {"message": "Bhai, Cloud PC Agent Webhook par ekdum मस्त chal raha hai!"}
+
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Bhai, Proxy ke sath Cloud AI Agent active ho gaya hai! Mujhe koi bhi website research ka kaam bolo.")
+    bot.reply_to(message, "Bhai, Webhook ke sath Cloud AI Agent active ho gaya hai! Mujhe koi bhi website research ka kaam bolo.")
 
 @bot.message_handler(func=lambda message: True)
 def handle_agent_command(message):
@@ -46,12 +66,10 @@ def handle_agent_command(message):
             browser.close()
             
         with open(screenshot_path, "rb") as photo:
-            bot.send_photo(message.chat.id, photo, caption=f"Bhai, Proxy PC par kaam ho gaya! Yeh dekho screen.")
+            bot.send_photo(message.chat.id, photo, caption="Bhai, online PC ka screenshot yeh raha!")
             
     except Exception as e:
-        bot.reply_to(message, f"Kuch gadbad hui bhai: {str(e)}")
+        bot.reply_to(message, f"Gadbad hui bhai: {str(e)}")
 
 if __name__ == "__main__":
-    # Timeout badha kar polling chalu karna
-    bot.infinity_polling(timeout=60, long_polling_timeout=60)
-    
+    uvicorn.run(app, host="0.0.0.0", port=7860)
