@@ -53,5 +53,7 @@ def handle_agent_command(message):
         bot.reply_to(message, f"Kuch gadbad hui bhai: {str(e)}")
 
 if __name__ == "__main__":
-    bot.infinity_polling()
+        bot.infinity_polling(timeout=60, long_polling_timeout=60)
+    
+    
     
