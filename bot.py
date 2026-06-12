@@ -50,7 +50,7 @@ def handle_agent_command(message):
             page = browser.new_page()
             
             ai_instruction = ai_client.models.generate_content(
-                model='gemini-1.5-pro',
+                model='gemini-1.5-pro-latest',
                 contents=f"User wants to do this: '{user_prompt}'. Tell me only the exact URL they should visit first. Reply with just the URL."
             )
             target_url = ai_instruction.text.strip()
