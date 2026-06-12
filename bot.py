@@ -5,22 +5,22 @@ from google import genai
 from playwright.sync_api import sync_playwright
 import uvicorn
 
-# Tokens uthana (Hugging Face Secret se)
+# Tokens uthana (Render ke Environment Variables se)
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
+# Render apne aap hamari website ka URL deta hai 'RENDER_EXTERNAL_URL' me
+RENDER_URL = os.environ.get('RENDER_EXTERNAL_URL')
+WEBHOOK_URL = f"{RENDER_URL}/webhook"
+
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 ai_client = genai.Client(api_key=GEMINI_API_KEY)
-
-# Hugging Face ke server ka address automatic nikalna
-SPACE_ID = os.environ.get('SPACE_ID') 
-WEBHOOK_URL = f"https://{SPACE_ID.replace('/', '-').lower()}.hf.space/webhook"
 
 app = FastAPI()
 
 @app.on_event("startup")
 def on_startup():
-    # Telegram ko batana ki hamara bot ab is link par active hai
+    # Telegram ko batana ki Render ka address yeh hai
     bot.remove_webhook()
     bot.set_webhook(url=WEBHOOK_URL)
 
@@ -33,11 +33,11 @@ async def handle_webhook(request: Request):
 
 @app.get("/")
 def read_root():
-    return {"message": "Bhai, Cloud PC Agent Webhook par ekdum मस्त chal raha hai!"}
+    return {"message": "Bhai, Render par Cloud PC Agent Webhook ke sath ekdum Live hai!"}
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Bhai, Webhook ke sath Cloud AI Agent active ho gaya hai! Mujhe koi bhi website research ka kaam bolo.")
+    bot.reply_to(message, "Bhai, Render par Cloud AI Agent active ho gaya hai! Mujhe koi bhi website research ka kaam bolo.")
 
 @bot.message_handler(func=lambda message: True)
 def handle_agent_command(message):
@@ -72,4 +72,4 @@ def handle_agent_command(message):
         bot.reply_to(message, f"Gadbad hui bhai: {str(e)}")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+    uvicorn.run(app, host="0.0.0.0", port=10000)
