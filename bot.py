@@ -11,7 +11,7 @@ WEBHOOK_URL = f"{RENDER_URL}/webhook"
 
 # ⚠️ HUGGING FACE SPACE URL: Isme apne account ka sahi naam check kar lena bhai
 # Agar aapka username khalid7866 hai toh: 'https://khalid7866-my-cloud-agent.hf.space/run-agent'
-HF_AGENT_URL = "https://khalid7866-my-cloud-agent.hf.space/run-agent"
+HF_AGENT_URL = "https://INFINITYKM-my-cloud-agent.hf.space/run-agent"
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 app = FastAPI()
